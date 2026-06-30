@@ -225,6 +225,15 @@ function setMaintenanceMode(val) { return updateSetting('maintenance', val); }
 // ── Log Channel ───────────────────────────────────────────────────────────────
 function getLogChannelId() { return getSettings().logChannelId || null; }
 
+// ── Admin Payments ────────────────────────────────────────────────────────────
+function getAdminPayments() { return readJSON('adminPayments.json') || {}; }
+function getAdminPayment(userId) { return getAdminPayments()[userId] || null; }
+function setAdminPayment(userId, data) {
+  const all = getAdminPayments();
+  all[userId] = { ...data, updatedAt: new Date().toISOString() };
+  return writeJSON('adminPayments.json', all);
+}
+
 // ── GiG Rate ─────────────────────────────────────────────────────────────────
 function getGigRate() { return getSettings().gigRate || 86; }
 
@@ -367,4 +376,5 @@ module.exports = {
   useVoucher, validateVoucher, applyVoucherDiscount,
   getDailyRevenue, getDailyOrders, getTopItems, getTopBuyersData,
   getStatusDistribution, getCategoryRevenue, getUserStats,
+  getAdminPayments, getAdminPayment, setAdminPayment,
 };

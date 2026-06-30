@@ -147,5 +147,63 @@
         "at": "2026-06-29T11:30:54.776Z"
       }
     ]
+  },
+  {
+    "invoice": "YS-0004",
+    "userId": "1435874664839774249",
+    "username": "yasszz09",
+    "gameSlug": "cart",
+    "itemId": null,
+    "itemName": "Cart (3 item)",
+    "price": 200250,
+    "items": [
+      {
+        "id": "gig-limited-world-tour-bundle",
+        "name": "World Tour Bundle",
+        "emoji": "🌍",
+        "price": 80910,
+        "quantity": 1
+      },
+      {
+        "id": "gig-limited-dragon-bundle",
+        "name": "Dragon Bundle",
+        "emoji": "🐉",
+        "price": 89910,
+        "quantity": 1
+      },
+      {
+        "id": "gig-hot-arctic-crystal-egg-x3",
+        "name": "Arctic Crystal Egg x3",
+        "emoji": "🥚",
+        "price": 29430,
+        "quantity": 1
+      }
+    ],
+    "isCart": true,
+    "totalPrice": 200250,
+    "voucherCode": null,
+    "discount": 0,
+    "status": "DONE",
+    "paymentProofURL": null,
+    "claimedBy": null,
+    "channelId": "1521441427207491604",
+    "date": "2026-06-30T09:05:02.981Z",
+    "log": [
+      {
+        "event": "ORDER CREATED",
+        "by": "yasszz09",
+        "at": "2026-06-30T09:05:02.981Z"
+      },
+      {
+        "event": "WAITING PAYMENT",
+        "by": "System",
+        "at": "2026-06-30T09:05:03.508Z"
+      },
+      {
+        "event": "DONE - CLOSED",
+        "by": "yasszz_09",
+        "at": "2026-06-30T09:05:29.283Z"
+      }
+    ]
   }
 ]

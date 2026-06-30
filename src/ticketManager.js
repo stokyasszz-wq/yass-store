@@ -85,7 +85,7 @@ async function createTicket(guild, user, product, order) {
     parent: category.id,
     permissionOverwrites: [
       { id: guild.roles.everyone, deny: [PermissionFlagsBits.ViewChannel] },
-      { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory] },
+      { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory], deny: [PermissionFlagsBits.SendMessages] },
       { id: config.staffRoleId, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory] },
     ],
   });
@@ -95,8 +95,8 @@ async function createTicket(guild, user, product, order) {
   const updatedOrder = db.getOrderByInvoice(order.invoice);
 
   await ticketChannel.send({ content: `<@${user.id}> | <@&${config.staffRoleId}>`, embeds: [embeds.invoiceEmbed(updatedOrder)] });
-  await ticketChannel.send({ embeds: [embeds.paymentEmbed(config.dana, order)], components: [userActionRow(order.invoice)] });
-  await ticketChannel.send({ content: `> <@&${config.staffRoleId}> — Ticket baru masuk, gunakan tombol di bawah.`, components: [staffActionRow(order.invoice)] });
+  await ticketChannel.send({ content: `> <@&${config.staffRoleId}> — Ticket baru masuk! Gunakan \`/payment ${order.invoice}\` untuk claim dan kirim info pembayaran.`, components: [staffActionRow(order.invoice)] });
+  await ticketChannel.send({ content: `> ⏳ <@${user.id}> Ticket kamu sudah dibuat. Tunggu staff mengklaim dan mengirim info pembayaran ya!` });
 
   await sendAutoDm(user, updatedOrder);
 
@@ -125,7 +125,7 @@ async function createCartTicket(guild, user, cartItems, order) {
     parent: category.id,
     permissionOverwrites: [
       { id: guild.roles.everyone, deny: [PermissionFlagsBits.ViewChannel] },
-      { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory] },
+      { id: user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory], deny: [PermissionFlagsBits.SendMessages] },
       { id: config.staffRoleId, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory] },
     ],
   });
@@ -135,8 +135,8 @@ async function createCartTicket(guild, user, cartItems, order) {
   const updatedOrder = db.getOrderByInvoice(order.invoice);
 
   await ticketChannel.send({ content: `<@${user.id}> | <@&${config.staffRoleId}>`, embeds: [embeds.invoiceEmbed(updatedOrder)] });
-  await ticketChannel.send({ embeds: [embeds.paymentEmbed(config.dana, updatedOrder)], components: [userActionRow(order.invoice)] });
-  await ticketChannel.send({ content: `> <@&${config.staffRoleId}> — Ticket cart baru masuk, gunakan tombol di bawah.`, components: [staffActionRow(order.invoice)] });
+  await ticketChannel.send({ content: `> <@&${config.staffRoleId}> — Ticket cart baru masuk! Gunakan \`/payment ${order.invoice}\` untuk claim dan kirim info pembayaran.`, components: [staffActionRow(order.invoice)] });
+  await ticketChannel.send({ content: `> ⏳ <@${user.id}> Ticket kamu sudah dibuat. Tunggu staff mengklaim dan mengirim info pembayaran ya!` });
 
   await sendAutoDm(user, updatedOrder);
 

@@ -42,6 +42,8 @@ const { showBulkStockModal, handleBulkStockModal } = require('./handlers/bulkSto
 const { handleSetLogChannel } = require('./handlers/logChannelHandler');
 const { handleReduceStock, handleSetStock } = require('./handlers/reduceStockCommandHandler');
 const { handleGigManualModal } = require('./handlers/gigManualOrderHandler');
+const { handlePaymentClaim } = require('./handlers/paymentClaimHandler');
+const { showSetMyPaymentModal, handleSetMyPaymentModal } = require('./handlers/setMyPaymentHandler');
 
 ['token', 'guildId', 'staffRoleId'].forEach(key => {
   if (!config[key]) { console.error(`[BOT] Config missing: ${key}`); process.exit(1); }
@@ -212,6 +214,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (commandName === 'setlogchannel'){ if (await staffOnly()) return; return handleSetLogChannel(interaction); }
       if (commandName === 'clearreviews') { if (await staffOnly()) return; return handleClearReviews(interaction); }
 
+      if (commandName === 'payment')      { if (await staffOnly()) return; return handlePaymentClaim(interaction); }
+      if (commandName === 'setmypayment') { if (await staffOnly()) return; return showSetMyPaymentModal(interaction); }
+
       // ── Cart ──────────────────────────────────────────────────────────────
       if (commandName === 'cart')     return handleViewCart(interaction);
       if (commandName === 'checkout') return handleCheckoutCommand(interaction);
@@ -250,6 +255,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (id === 'modal_set_payment')       return handleSetPaymentModal(interaction);
       if (id === 'modal_bulk_stock')        return handleBulkStockModal(interaction);
       if (id === 'modal_gig_manual')        return handleGigManualModal(interaction);
+      if (id === 'modal_set_my_payment')    return handleSetMyPaymentModal(interaction);
       if (id.startsWith('modal_review_'))   return handleReviewModal(interaction, id.replace('modal_review_', ''));
       if (id === 'modal_inv_search') {
         const { handleInvoiceSearchModal } = require('./handlers/invoicePanel');

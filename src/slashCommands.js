@@ -138,6 +138,11 @@ const commands = [
 
   new SlashCommandBuilder().setName('clearreviews').setDescription('Hapus semua review (staff only)'),
 
+  new SlashCommandBuilder().setName('payment').setDescription('Claim ticket dan kirim info pembayaran ke buyer (staff only)')
+    .addStringOption(o => o.setName('invoice').setDescription('Nomor invoice (contoh: YS-0001)').setRequired(true)),
+
+  new SlashCommandBuilder().setName('setmypayment').setDescription('Atur info pembayaran DANA pribadimu untuk digunakan saat claim ticket (staff only)'),
+
 ].map(c => c.toJSON());
 
 async function registerCommands(clientId, guildId) {

@@ -21,7 +21,7 @@
     "id": "gift_in_game",
     "name": "Gift In Game",
     "emoji": "🎁",
-    "isOpen": false
+    "isOpen": true
   },
   {
     "id": "robux_login",
