@@ -205,5 +205,76 @@
         "at": "2026-06-30T09:05:29.283Z"
       }
     ]
+  },
+  {
+    "invoice": "YS-0005",
+    "userId": "1435874664839774249",
+    "username": "yasszz09",
+    "gameSlug": "gift_in_game",
+    "itemId": "gig-gamepass-gamepass-vip-luck",
+    "itemName": "[GAMEPASS] VIP + LUCK",
+    "price": 40050,
+    "items": [
+      {
+        "id": "gig-gamepass-gamepass-vip-luck",
+        "name": "[GAMEPASS] VIP + LUCK",
+        "emoji": "🎮",
+        "price": 40050,
+        "quantity": 1,
+        "robuxAmount": 445
+      }
+    ],
+    "isCart": false,
+    "totalPrice": 40050,
+    "voucherCode": null,
+    "discount": 0,
+    "status": "DONE",
+    "paymentProofURL": "https://cdn.discordapp.com/attachments/1521451361378766998/1521451651507032125/IMG-20260630-WA0281.jpg?ex=6a44e1c4&is=6a439044&hm=d4a577d5cc7e9cee1c555e0099bee882c23159391a9bad17ef259fb3359fbda0&",
+    "claimedBy": "1423515761351065661",
+    "channelId": "1521451361378766998",
+    "date": "2026-06-30T09:44:31.514Z",
+    "log": [
+      {
+        "event": "ORDER CREATED",
+        "by": "yasszz09",
+        "at": "2026-06-30T09:44:31.514Z"
+      },
+      {
+        "event": "WAITING PAYMENT",
+        "by": "System",
+        "at": "2026-06-30T09:44:31.932Z"
+      },
+      {
+        "event": "CLAIMED",
+        "by": "yasszz_09",
+        "at": "2026-06-30T09:45:00.468Z"
+      },
+      {
+        "event": "CLAIMED + PAYMENT SENT",
+        "by": "yasszz_09",
+        "at": "2026-06-30T09:45:12.864Z"
+      },
+      {
+        "event": "PAYMENT DONE clicked",
+        "by": "yasszz09",
+        "at": "2026-06-30T09:45:31.160Z"
+      },
+      {
+        "event": "PROOF SENT",
+        "by": "yasszz09",
+        "at": "2026-06-30T09:45:41.244Z"
+      },
+      {
+        "event": "VERIFIED",
+        "by": "yasszz_09",
+        "at": "2026-06-30T09:45:56.658Z"
+      },
+      {
+        "event": "DONE",
+        "by": "yasszz_09",
+        "at": "2026-06-30T09:46:12.423Z"
+      }
+    ],
+    "doneBy": "1423515761351065661"
   }
 ]
