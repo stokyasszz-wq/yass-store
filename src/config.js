@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const config = {
-  token: process.env.DISCORD_TOKEN || 'MTUyMDY5MDE5ODI3NzY1MjY4MA.GoGqDB.Xy8CBkfw9afb6n0DzmaiFymuN5k9PCem93_CB8',
+  token: process.env.DISCORD_TOKEN,
   guildId: process.env.GUILD_ID || '1477540132931244134',
   staffRoleId: process.env.STAFF_ROLE_ID || '1477542921929756753',
 
