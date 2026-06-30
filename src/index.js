@@ -292,11 +292,3 @@ startWebServer(5000);
 
 client.login(config.token);
 
-const express = require("express");
-const app = express();
-
-app.get("/", (req, res) => {
-  res.send("Bot alive");
-});
-
-app.listen(process.env.PORT || 3000);
