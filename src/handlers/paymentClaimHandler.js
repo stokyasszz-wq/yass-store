@@ -1,7 +1,6 @@
-const { PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { PermissionFlagsBits, ActionRowBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const db = require('../db');
 const config = require('../config');
-const embeds = require('../embeds');
 const { sendLog } = require('./logManager');
 
 const rp = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
@@ -10,6 +9,15 @@ function userActionRow(invoice) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`payment_done_${invoice}`).setLabel('✔ Payment Done').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId(`upload_bukti_${invoice}`).setLabel('📸 Upload Bukti').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId(`cancel_order_btn_${invoice}`).setLabel('❌ Cancel Order').setStyle(ButtonStyle.Danger),
+  );
+}
+
+function staffTicketActionRow(invoice) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`done_order_${invoice}`).setLabel('✅ Done Order').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`cancel_order_btn_${invoice}`).setLabel('❌ Cancel Order').setStyle(ButtonStyle.Danger),
+    new ButtonBuilder().setCustomId(`close_ticket_${invoice}`).setLabel('🔒 Close Ticket').setStyle(ButtonStyle.Secondary),
   );
 }
 
@@ -70,8 +78,20 @@ async function handlePaymentClaim(interaction) {
     .setFooter({ text: `Dihandle oleh ${interaction.user.tag} • Yass Store Bot` })
     .setTimestamp();
 
-  await channel.send({ content: `<@${order.userId}> — Info pembayaran dari staff <@${interaction.user.id}>:`, embeds: [paymentEmbed], components: [userActionRow(invoice)] });
-  await channel.send({ content: `📌 Ticket ini di-handle oleh <@${interaction.user.id}>.` });
+  if (adminPayment.qrisUrl) {
+    paymentEmbed.addFields({ name: '🔲 QRIS', value: 'Scan QR Code di bawah ini untuk bayar:', inline: false });
+    paymentEmbed.setImage(adminPayment.qrisUrl);
+  }
+
+  await channel.send({
+    content: `<@${order.userId}> — Info pembayaran dari staff <@${interaction.user.id}>:`,
+    embeds: [paymentEmbed],
+    components: [userActionRow(invoice)],
+  });
+  await channel.send({
+    content: `📌 Ticket ini di-handle oleh <@${interaction.user.id}>.`,
+    components: [staffTicketActionRow(invoice)],
+  });
 
   if (interaction.guild) await sendLog(interaction.guild, db.getOrderByInvoice(invoice), 'CLAIMED', `Claimed + payment sent by ${interaction.user.tag}`);
 

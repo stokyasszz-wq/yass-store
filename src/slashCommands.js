@@ -143,6 +143,9 @@ const commands = [
 
   new SlashCommandBuilder().setName('setmypayment').setDescription('Atur info pembayaran DANA pribadimu untuk digunakan saat claim ticket (staff only)'),
 
+  new SlashCommandBuilder().setName('sethistorychannel').setDescription('Set channel riwayat order selesai (staff only)')
+    .addChannelOption(o => o.setName('channel').setDescription('Channel untuk riwayat order').setRequired(true).addChannelTypes(ChannelType.GuildText)),
+
 ].map(c => c.toJSON());
 
 async function registerCommands(clientId, guildId) {

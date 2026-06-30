@@ -114,11 +114,13 @@ async function handleButtonInteraction(interaction) {
     return showGigManualModal(interaction);
   }
 
-  if (id.startsWith('claim_ticket_'))   return handleClaimTicket(interaction,   id.replace('claim_ticket_', ''));
-  if (id.startsWith('verify_payment_')) return handleVerifyPayment(interaction, id.replace('verify_payment_', ''));
-  if (id.startsWith('close_ticket_'))   return handleCloseTicket(interaction,   id.replace('close_ticket_', ''));
-  if (id.startsWith('payment_done_'))   return handlePaymentDone(interaction,   id.replace('payment_done_', ''));
-  if (id.startsWith('upload_bukti_'))   return handleUploadBukti(interaction,   id.replace('upload_bukti_', ''));
+  if (id.startsWith('claim_ticket_'))      return handleClaimTicket(interaction,    id.replace('claim_ticket_', ''));
+  if (id.startsWith('verify_payment_'))    return handleVerifyPayment(interaction,  id.replace('verify_payment_', ''));
+  if (id.startsWith('close_ticket_'))      return handleCloseTicket(interaction,    id.replace('close_ticket_', ''));
+  if (id.startsWith('payment_done_'))      return handlePaymentDone(interaction,    id.replace('payment_done_', ''));
+  if (id.startsWith('upload_bukti_'))      return handleUploadBukti(interaction,    id.replace('upload_bukti_', ''));
+  if (id.startsWith('done_order_'))        return handleDoneOrder(interaction,      id.replace('done_order_', ''));
+  if (id.startsWith('cancel_order_btn_')) return handleCancelOrderBtn(interaction, id.replace('cancel_order_btn_', ''));
 }
 
 async function handleSelectInteraction(interaction) {
@@ -165,6 +167,81 @@ async function handleUploadBukti(interaction, invoice) {
     content: '📸 **Cara upload bukti transfer:**\n1. Screenshot riwayat transfer di DANA\n2. Kirim gambar **langsung di chat channel ini**\n> ⚠️ Hanya gambar yang diterima.',
     ephemeral: true,
   });
+}
+
+async function handleDoneOrder(interaction, invoice) {
+  if (!interaction.member.roles.cache.has(config.staffRoleId))
+    return interaction.reply({ content: '❌ Hanya staff yang bisa menandai order selesai!', ephemeral: true });
+
+  const order = db.getOrderByInvoice(invoice);
+  if (!order) return interaction.reply({ content: '❌ Order tidak ditemukan.', ephemeral: true });
+  if (order.status === 'DONE')
+    return interaction.reply({ content: '✅ Order ini sudah berstatus DONE sebelumnya.', ephemeral: true });
+  if (order.status === 'CANCELLED')
+    return interaction.reply({ content: '❌ Order ini sudah dibatalkan.', ephemeral: true });
+
+  db.updateOrder(invoice, { status: 'DONE', doneBy: interaction.user.id });
+  db.appendOrderLog(invoice, 'DONE', interaction.user.tag);
+  const updated = db.getOrderByInvoice(invoice);
+
+  const { EmbedBuilder } = require('discord.js');
+  const doneEmbed = new EmbedBuilder()
+    .setColor(config.colors.success)
+    .setTitle('✅  Order Selesai!')
+    .setDescription(`Invoice **${invoice}** telah ditandai selesai oleh <@${interaction.user.id}>.`)
+    .addFields(
+      { name: '👤 Pembeli', value: `<@${order.userId}>`, inline: true },
+      { name: '🛍️ Item',   value: order.itemName || (order.isCart ? 'Cart Order' : '—'), inline: true },
+      { name: '💰 Total',  value: `Rp ${Number(order.totalPrice || order.price || 0).toLocaleString('id-ID')}`, inline: true },
+    )
+    .setFooter({ text: `Diselesaikan oleh ${interaction.user.tag} • Yass Store Bot` })
+    .setTimestamp();
+
+  await interaction.reply({ content: `✅ Order **${invoice}** berhasil ditandai **DONE**!\n> <@${order.userId}> Item kamu sudah dikirim/selesai diproses. Terima kasih! 🎉`, embeds: [doneEmbed] });
+
+  if (interaction.guild) {
+    const { sendLog } = require('./logManager');
+    await sendLog(interaction.guild, updated, 'DONE', `Marked done by ${interaction.user.tag}`);
+    const { postOrderDone } = require('./orderHistoryChannel');
+    await postOrderDone(interaction.guild, updated, interaction.user.tag);
+  }
+
+  setTimeout(async () => { try { await interaction.channel.delete(); } catch (_) {} }, 10_000);
+}
+
+async function handleCancelOrderBtn(interaction, invoice) {
+  const order = db.getOrderByInvoice(invoice);
+  if (!order) return interaction.reply({ content: '❌ Order tidak ditemukan.', ephemeral: true });
+
+  const isStaff = interaction.member?.roles?.cache?.has(config.staffRoleId);
+  if (order.userId !== interaction.user.id && !isStaff)
+    return interaction.reply({ content: '❌ Kamu hanya bisa cancel order milikmu sendiri!', ephemeral: true });
+
+  if (['DONE', 'CANCELLED', 'REFUNDED'].includes(order.status))
+    return interaction.reply({ content: `❌ Order sudah **${order.status}**, tidak bisa dibatalkan.`, ephemeral: true });
+
+  if (!isStaff && order.status === 'PROOF SENT')
+    return interaction.reply({ content: '❌ Bukti sudah dikirim. Hubungi staff untuk membatalkan.', ephemeral: true });
+
+  const stock = db.getStock();
+  if (order.items && order.items.length > 0) {
+    for (const item of order.items) stock[item.id] = (stock[item.id] ?? 0) + (item.quantity || 1);
+  } else if (order.itemId) {
+    stock[order.itemId] = (stock[order.itemId] ?? 0) + 1;
+  }
+  db.setStock(stock);
+
+  db.updateOrder(invoice, { status: 'CANCELLED' });
+  db.appendOrderLog(invoice, 'CANCELLED', interaction.user.tag);
+
+  await interaction.reply({ content: `❌ Order **${invoice}** telah dibatalkan oleh <@${interaction.user.id}>.\n🔒 Channel ini akan ditutup dalam 10 detik.` });
+
+  if (interaction.guild) {
+    const { sendLog } = require('./logManager');
+    await sendLog(interaction.guild, db.getOrderByInvoice(invoice), 'CANCELLED', `Cancelled by ${interaction.user.tag}`);
+  }
+
+  setTimeout(async () => { try { await interaction.channel.delete(); } catch (_) {} }, 10_000);
 }
 
 async function handleClaimTicket(interaction, invoice) {

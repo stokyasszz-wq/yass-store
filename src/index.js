@@ -44,6 +44,7 @@ const { handleReduceStock, handleSetStock } = require('./handlers/reduceStockCom
 const { handleGigManualModal } = require('./handlers/gigManualOrderHandler');
 const { handlePaymentClaim } = require('./handlers/paymentClaimHandler');
 const { showSetMyPaymentModal, handleSetMyPaymentModal } = require('./handlers/setMyPaymentHandler');
+const { handleSetHistoryChannel } = require('./handlers/orderHistoryChannel');
 
 ['token', 'guildId', 'staffRoleId'].forEach(key => {
   if (!config[key]) { console.error(`[BOT] Config missing: ${key}`); process.exit(1); }
@@ -214,8 +215,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (commandName === 'setlogchannel'){ if (await staffOnly()) return; return handleSetLogChannel(interaction); }
       if (commandName === 'clearreviews') { if (await staffOnly()) return; return handleClearReviews(interaction); }
 
-      if (commandName === 'payment')      { if (await staffOnly()) return; return handlePaymentClaim(interaction); }
-      if (commandName === 'setmypayment') { if (await staffOnly()) return; return showSetMyPaymentModal(interaction); }
+      if (commandName === 'payment')           { if (await staffOnly()) return; return handlePaymentClaim(interaction); }
+      if (commandName === 'setmypayment')      { if (await staffOnly()) return; return showSetMyPaymentModal(interaction); }
+      if (commandName === 'sethistorychannel') { if (await staffOnly()) return; return handleSetHistoryChannel(interaction); }
 
       // ── Cart ──────────────────────────────────────────────────────────────
       if (commandName === 'cart')     return handleViewCart(interaction);

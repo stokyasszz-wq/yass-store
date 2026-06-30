@@ -28,14 +28,24 @@ async function showSetMyPaymentModal(interaction) {
     .setRequired(true)
     .setMaxLength(50);
 
+  const qrisInput = new TextInputBuilder()
+    .setCustomId('my_payment_qris')
+    .setLabel('URL Gambar QRIS (opsional, bisa dikosongkan)')
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder('Contoh: https://i.imgur.com/xxxxx.png')
+    .setRequired(false)
+    .setMaxLength(500);
+
   if (existing) {
     numberInput.setValue(existing.number);
     nameInput.setValue(existing.name);
+    if (existing.qrisUrl) qrisInput.setValue(existing.qrisUrl);
   }
 
   modal.addComponents(
     new ActionRowBuilder().addComponents(numberInput),
     new ActionRowBuilder().addComponents(nameInput),
+    new ActionRowBuilder().addComponents(qrisInput),
   );
 
   await interaction.showModal(modal);
@@ -45,20 +55,25 @@ async function handleSetMyPaymentModal(interaction) {
   if (!interaction.member.roles.cache.has(config.staffRoleId))
     return interaction.reply({ content: '❌ Hanya staff yang bisa menggunakan command ini!', ephemeral: true });
 
-  const number = interaction.fields.getTextInputValue('my_payment_number').trim();
-  const name = interaction.fields.getTextInputValue('my_payment_name').trim().toUpperCase();
+  const number  = interaction.fields.getTextInputValue('my_payment_number').trim();
+  const name    = interaction.fields.getTextInputValue('my_payment_name').trim().toUpperCase();
+  const qrisUrl = interaction.fields.getTextInputValue('my_payment_qris').trim() || null;
 
-  db.setAdminPayment(interaction.user.id, { number, name });
+  db.setAdminPayment(interaction.user.id, { number, name, qrisUrl });
+
+  const fields = [
+    { name: '🏦 Metode', value: 'DANA', inline: true },
+    { name: '📱 Nomor', value: `\`${number}\``, inline: true },
+    { name: '👤 Atas Nama', value: `**${name}**`, inline: true },
+  ];
+  if (qrisUrl) fields.push({ name: '🔲 QRIS', value: '✅ Tersimpan — akan ditampilkan di payment embed', inline: false });
+  else fields.push({ name: '🔲 QRIS', value: '—  (belum diatur)', inline: false });
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.success)
     .setTitle('✅ Payment Info Tersimpan!')
-    .setDescription(`Info payment kamu berhasil diperbarui. Akan digunakan saat kamu melakukan \`/payment\`.`)
-    .addFields(
-      { name: '🏦 Metode', value: 'DANA', inline: true },
-      { name: '📱 Nomor', value: `\`${number}\``, inline: true },
-      { name: '👤 Atas Nama', value: `**${name}**`, inline: true },
-    )
+    .setDescription('Info payment kamu berhasil diperbarui. Akan digunakan saat kamu menjalankan `/payment`.')
+    .addFields(...fields)
     .setFooter({ text: `Disimpan untuk ${interaction.user.tag}` })
     .setTimestamp();
 
