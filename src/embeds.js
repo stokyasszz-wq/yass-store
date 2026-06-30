@@ -31,12 +31,12 @@ function liveStoreEmbed() {
 
     if (!cat.isOpen)   return `${cat.emoji} **${cat.name}** ┃ 🔴 CLOSED`;
     if (!totalStock)   return `${cat.emoji} **${cat.name}** ┃ 🟡 OUT OF STOCK`;
-    return `${cat.emoji} **${cat.name}** ┃ 🟢 AVAILABLE`;
+    return `${cat.emoji} **${cat.name}** ┃ <a:veriff:1521453856498651147> AVAILABLE`;
   }).join('\n');
 
   return new EmbedBuilder()
     .setColor(config.colors.success)
-    .setTitle('🟢  YASS STORE — LIVE')
+    .setTitle('<a:veriff:1521453856498651147>  YASS STORE — LIVE')
     .setDescription(
       '> Top Up Aman, Murah, & Terpercaya!\n' +
       '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
@@ -286,7 +286,7 @@ function proofReceivedEmbed(order, imageUrl) {
 function verifiedEmbed(order, verifierTag) {
   return new EmbedBuilder()
     .setColor(config.colors.success)
-    .setTitle('✅  Pembayaran Terverifikasi!')
+    .setTitle(' <a:veriff:1521453856498651147>  Pembayaran Terverifikasi!')
     .setDescription(`Invoice **${order.invoice}** telah diverifikasi. Terima kasih! 🎉`)
     .addFields(
       { name: '📊  Status',            value: '🟢 VERIFIED', inline: true },
