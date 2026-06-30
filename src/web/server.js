@@ -354,7 +354,7 @@ app.get('/api/users/:userId', authMiddleware, (req, res) => {
 });
 
 // ── Catch-all ─────────────────────────────────────────────────────────────────
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('*path', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 function startWebServer(port) {
   app.listen(port||5000, '0.0.0.0', () => {
