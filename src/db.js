@@ -177,8 +177,15 @@ function setCart(userId, items) {
 function addToCart(userId, item) {
   const cart = getCart(userId);
   const existing = cart.find(i => i.id === item.id);
-  if (existing) existing.quantity = (existing.quantity || 1) + 1;
-  else cart.push({ ...item, quantity: 1 });
+  if (existing) {
+    existing.quantity = (existing.quantity || 1) + 1;
+    existing.price = item.price;
+    existing.type = item.type;
+    existing.robuxAmount = item.robuxAmount;
+    existing.categoryId = item.categoryId;
+    existing.name = item.name;
+    existing.emoji = item.emoji;
+  } else cart.push({ ...item, quantity: 1 });
   return setCart(userId, cart);
 }
 function removeFromCart(userId, itemId) { return setCart(userId, getCart(userId).filter(i => i.id !== itemId)); }

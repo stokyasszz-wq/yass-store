@@ -79,7 +79,6 @@ async function handleGigManualModal(interaction) {
 
   const gigRate  = db.getGigRate();
   const estimated = robuxAmount * gigRate;
-  const invoice   = db.getNextInvoice ? db.getNextInvoice() : `YS-MANUAL-${Date.now()}`;
 
   const order = db.createOrder({
     userId:      interaction.user.id,

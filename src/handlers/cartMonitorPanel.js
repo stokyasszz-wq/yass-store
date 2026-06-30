@@ -18,7 +18,15 @@ async function showCartMonitor(interaction) {
     embed.setDescription('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n*Tidak ada cart aktif saat ini.*');
   } else {
     const fields = userIds.slice(0, 10).map(uid => {
-      const cart = allCarts[uid];
+      const cart = allCarts[uid].map(item => {
+        const product = db.getItemById(item.id);
+        return {
+          ...item,
+          price: product ? db.getItemEffectivePrice(product) : item.price || 0,
+          emoji: product?.emoji || item.emoji || '📦',
+          name: product?.name || item.name,
+        };
+      });
       const total = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
       const itemList = cart.map(i => `• ${i.emoji} ${i.name} ×${i.quantity || 1}`).join('\n').substring(0, 200);
       return {

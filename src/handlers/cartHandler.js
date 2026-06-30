@@ -16,6 +16,18 @@ const rp = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 const checkoutCooldowns = new Map();
 const COOLDOWN_MS = 30_000;
 
+function resolveCartItem(item) {
+  const product = db.getItemById(item.id);
+  const price = product ? db.getItemEffectivePrice(product) : item.price || 0;
+  return {
+    ...item,
+    name: product?.name || item.name,
+    emoji: product?.emoji || item.emoji || '📦',
+    categoryId: product?.categoryId || item.categoryId,
+    price,
+  };
+}
+
 function cartEmbed(userId, cart, username) {
   if (!cart || cart.length === 0) {
     return new EmbedBuilder()
@@ -24,11 +36,12 @@ function cartEmbed(userId, cart, username) {
       .setDescription('Belum ada item di cart.\n\nGunakan tombol **🛒 Tambah ke Cart** di store untuk menambah item.')
       .setFooter({ text: 'Yass Store Bot • Cart System' });
   }
-  const lines = cart.map((item, i) => {
+  const normalized = cart.map(resolveCartItem);
+  const lines = normalized.map((item, i) => {
     const subtotal = item.price * (item.quantity || 1);
     return `\`${String(i+1).padStart(2,'0')}\` ${item.emoji || '📦'} **${item.name}** × ${item.quantity || 1}\n    💰 ${rp(item.price)} × ${item.quantity || 1} = **${rp(subtotal)}**`;
   });
-  const total = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+  const total = normalized.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
   return new EmbedBuilder()
     .setColor(config.colors.primary)
     .setTitle(`🛒  Cart — ${username}`)
@@ -63,14 +76,24 @@ async function handleAddToCart(interaction, pendingSelections) {
   const stock = db.getStock();
   if ((stock[productId] ?? 0) <= 0) return interaction.reply({ content: `❌ **${product.name}** habis!`, ephemeral: true });
 
-  const catId = product.categoryId;
+  const catId = product.categoryId || product.gameSlug;
   if (!db.isCategoryOpen(catId)) {
     const cat = db.getCategoryById(catId);
     return interaction.reply({ content: `❌ Kategori **${cat ? cat.name : catId}** sedang CLOSED.`, ephemeral: true });
   }
 
-  db.addToCart(interaction.user.id, { id: product.id, name: product.name, emoji: product.emoji || '📦', price: product.price, categoryId: product.categoryId, quantity: 1 });
-  const cart = db.getCart(interaction.user.id);
+  const effectivePrice = db.getItemEffectivePrice(product);
+  db.addToCart(interaction.user.id, {
+    id: product.id,
+    name: product.name,
+    emoji: product.emoji || '📦',
+    price: effectivePrice,
+    categoryId: product.categoryId,
+    type: product.type,
+    robuxAmount: product.robuxAmount || null,
+    quantity: 1,
+  });
+  const cart = db.getCart(interaction.user.id).map(resolveCartItem);
   const total = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
 
   await interaction.reply({
@@ -80,7 +103,7 @@ async function handleAddToCart(interaction, pendingSelections) {
 }
 
 async function handleCartRemoveMenu(interaction) {
-  const cart = db.getCart(interaction.user.id);
+  const cart = db.getCart(interaction.user.id).map(resolveCartItem);
   if (cart.length === 0) return interaction.update({ content: '🛒 Cart sudah kosong.', embeds: [], components: [] });
   const options = cart.map(item =>
     new StringSelectMenuOptionBuilder()
@@ -116,9 +139,21 @@ function checkCooldown(userId) {
 }
 
 async function handleCartCheckout(interaction) {
-  const cart = db.getCart(interaction.user.id);
-  if (cart.length === 0) {
+  const rawCart = db.getCart(interaction.user.id);
+  if (rawCart.length === 0) {
     return interaction.update({ content: '❌ Cart kamu kosong! Tambah item dulu.', embeds: [], components: [] });
+  }
+
+  const cart = rawCart.map(resolveCartItem);
+  const missingItems = cart.filter(item => !db.getItemById(item.id));
+  if (missingItems.length > 0) {
+    const names = missingItems.map(i => i.name).join('\n• ');
+    const cleanedCart = rawCart.filter(item => db.getItemById(item.id));
+    db.setCart(interaction.user.id, cleanedCart);
+    if (cleanedCart.length === 0) {
+      return interaction.reply({ content: `❌ Item berikut sudah tidak tersedia lagi dan dihapus dari cart:\n• ${names}\n\nCart kamu sekarang kosong. Tambah item baru dari store.`, ephemeral: true });
+    }
+    return interaction.reply({ content: `❌ Item berikut sudah tidak tersedia lagi dan dihapus dari cart:\n• ${names}\n\nSilakan coba checkout lagi dengan item yang tersisa.`, ephemeral: true });
   }
 
   if (db.isMaintenanceMode()) {
@@ -218,7 +253,8 @@ async function handleCartCheckout(interaction) {
 async function handleCheckoutCommand(interaction) {
   const cart = db.getCart(interaction.user.id);
   if (cart.length === 0) return interaction.reply({ content: '🛒 Cart kamu kosong! Tambah item dulu dari store.', ephemeral: true });
-  const total = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+  const normalized = cart.map(resolveCartItem);
+  const total = normalized.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
   const embed = cartEmbed(interaction.user.id, cart, interaction.user.username);
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('cart_checkout').setLabel(`✅ Checkout ${cart.length} Item — ${rp(total)}`).setStyle(ButtonStyle.Success),
