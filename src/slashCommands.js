@@ -146,6 +146,13 @@ const commands = [
   new SlashCommandBuilder().setName('sethistorychannel').setDescription('Set channel riwayat order selesai (staff only)')
     .addChannelOption(o => o.setName('channel').setDescription('Channel untuk riwayat order').setRequired(true).addChannelTypes(ChannelType.GuildText)),
 
+  new SlashCommandBuilder().setName('setvouch').setDescription('Set channel vouch/review buyer (staff only)')
+    .addChannelOption(o => o.setName('channel').setDescription('Channel vouch').setRequired(true).addChannelTypes(ChannelType.GuildText)),
+
+  new SlashCommandBuilder().setName('resetorders').setDescription('Hapus seluruh riwayat order milik user tertentu (staff only)')
+    .addUserOption(o => o.setName('user').setDescription('User yang riwayat ordernya dihapus').setRequired(true))
+    .addStringOption(o => o.setName('alasan').setDescription('Alasan reset (opsional)').setRequired(false)),
+
 ].map(c => c.toJSON());
 
 async function registerCommands(clientId, guildId) {

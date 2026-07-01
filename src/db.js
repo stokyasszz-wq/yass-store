@@ -224,6 +224,14 @@ function setMaintenanceMode(val) { return updateSetting('maintenance', val); }
 
 // ── Log Channel ───────────────────────────────────────────────────────────────
 function getLogChannelId() { return getSettings().logChannelId || null; }
+function getVouchChannelId() { return getSettings().vouchChannelId || null; }
+function setVouchChannelId(channelId) { return updateSetting('vouchChannelId', channelId); }
+function resetUserOrders(userId) {
+  const all = getOrders();
+  const kept = all.filter(o => o.userId !== userId);
+  saveOrders(kept);
+  return all.length - kept.length;
+}
 
 // ── Admin Payments ────────────────────────────────────────────────────────────
 function getAdminPayments() { return readJSON('adminPayments.json') || {}; }
@@ -377,4 +385,6 @@ module.exports = {
   getDailyRevenue, getDailyOrders, getTopItems, getTopBuyersData,
   getStatusDistribution, getCategoryRevenue, getUserStats,
   getAdminPayments, getAdminPayment, setAdminPayment,
+  getVouchChannelId, setVouchChannelId,
+  resetUserOrders,
 };

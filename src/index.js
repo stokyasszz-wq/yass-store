@@ -45,6 +45,7 @@ const { handleGigManualModal } = require('./handlers/gigManualOrderHandler');
 const { handlePaymentClaim } = require('./handlers/paymentClaimHandler');
 const { showSetMyPaymentModal, handleSetMyPaymentModal } = require('./handlers/setMyPaymentHandler');
 const { handleSetHistoryChannel } = require('./handlers/orderHistoryChannel');
+const { handleVouchMessage, handleSetVouchChannel } = require('./handlers/vouchChannelHandler');
 const {
   pendingVouchers,
   handleVoucherList, showVoucherCreateModal, handleVoucherCreateModal,
@@ -223,6 +224,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (commandName === 'payment')           { if (await staffOnly()) return; return handlePaymentClaim(interaction); }
       if (commandName === 'setmypayment')      { if (await staffOnly()) return; return showSetMyPaymentModal(interaction); }
       if (commandName === 'sethistorychannel') { if (await staffOnly()) return; return handleSetHistoryChannel(interaction); }
+      if (commandName === 'setvouch')          { if (await staffOnly()) return; return handleSetVouchChannel(interaction); }
+      if (commandName === 'resetorders') {
+        if (await staffOnly()) return;
+        const target  = interaction.options.getUser('user');
+        const alasan  = interaction.options.getString('alasan') || 'Tidak ada alasan';
+        const removed = db.resetUserOrders(target.id);
+        return interaction.reply({
+          content: `🗑️ **${removed} order** milik ${target} (${target.tag}) berhasil dihapus.\n📝 Alasan: ${alasan}`,
+          ephemeral: true,
+        });
+      }
 
       // ── Voucher ───────────────────────────────────────────────────────────
       if (commandName === 'applyvoucher') return handleApplyVoucher(interaction, pendingVouchers);
@@ -291,6 +303,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       else await interaction.reply(msg);
     } catch (_) {}
   }
+});
+
+client.on(Events.MessageCreate, async (message) => {
+  try { await handleVouchMessage(message); } catch (err) { console.error('[VOUCH] Error:', err.message); }
 });
 
 client.on('error', (err) => console.error('[BOT] Client error:', err.message));

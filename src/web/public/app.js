@@ -907,11 +907,12 @@ async function userLookup() {
         <div class="row"><span>Status</span><span>${u.banned?'<span class="badge badge-cancelled">🔨 BANNED</span>':'<span class="badge badge-open">✅ OK</span>'}</span></div>
         ${u.banned?`<div class="row"><span>Alasan Ban</span><span>${u.banInfo?.reason||'—'}</span></div>`:''}
         ${recentOrders?`<div style="margin-top:8px;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;margin-bottom:4px">Order Terbaru</div>${recentOrders}`:''}
-        <div style="margin-top:10px;display:flex;gap:8px">
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
           ${u.banned
             ? `<button class="btn btn-xs btn-success" onclick="doUnbanUser('${u.userId}')">✅ Unban</button>`
             : `<button class="btn btn-xs btn-danger" onclick="doBanUserFromLookup('${u.userId}')">🔨 Ban</button>`
           }
+          <button class="btn btn-xs btn-warning" onclick="doResetUserOrders('${u.userId}')">🗑️ Reset Riwayat Order</button>
         </div>
       </div>`;
   } catch (err) { toast('User tidak ditemukan: ' + err.message, 'error'); }
@@ -920,6 +921,15 @@ async function userLookup() {
 async function doUnbanUser(userId) {
   try { await del(`/api/bans/${userId}`); toast('✅ User di-unban'); userLookup(); }
   catch (err) { toast('Gagal unban: ' + err.message, 'error'); }
+}
+
+async function doResetUserOrders(userId) {
+  if (!confirm(`Hapus SEMUA riwayat order milik user ${userId}?\nTindakan ini tidak bisa dibatalkan!`)) return;
+  try {
+    const r = await del(`/api/users/${userId}/orders`);
+    toast(`🗑️ ${r.removed} order berhasil dihapus`);
+    userLookup();
+  } catch (err) { toast('Gagal reset order: ' + err.message, 'error'); }
 }
 
 async function doBanUserFromLookup(userId) {

@@ -344,6 +344,12 @@ app.delete('/api/bans/:userId', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Reset User Orders ─────────────────────────────────────────────────────────
+app.delete('/api/users/:userId/orders', authMiddleware, (req, res) => {
+  const removed = db.resetUserOrders(req.params.userId);
+  res.json({ ok: true, removed });
+});
+
 // ── User Lookup ───────────────────────────────────────────────────────────────
 app.get('/api/users/:userId', authMiddleware, (req, res) => {
   const stats = db.getUserStats(req.params.userId);
