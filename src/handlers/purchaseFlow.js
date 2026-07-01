@@ -4,6 +4,7 @@ const { sendLog } = require('./logManager');
 const embeds = require('../embeds');
 const stockLock = require('../stockLock');
 const liveStore = require('../liveStore');
+const { pendingVouchers } = require('./voucherHandler');
 
 const pendingSelections = new Map();
 
@@ -84,16 +85,37 @@ async function handleOrderNow(interaction) {
     db.setStock(stock);
 
     // Harga efektif: GiG = robuxAmount × gigRate, lainnya = price tetap
-    const finalPrice = db.getItemEffectivePrice(product);
+    const basePrice = db.getItemEffectivePrice(product);
+
+    // Terapkan voucher jika ada
+    const voucherCode = pendingVouchers.get(interaction.user.id) || null;
+    let finalPrice = basePrice;
+    let discount   = 0;
+    let usedVoucher = null;
+    if (voucherCode) {
+      const vResult = db.validateVoucher(voucherCode);
+      if (vResult.ok) {
+        const applied = db.applyVoucherDiscount(vResult.voucher, basePrice);
+        finalPrice  = applied.finalPrice;
+        discount    = applied.discount;
+        usedVoucher = vResult.voucher;
+        db.useVoucher(voucherCode, interaction.user.id);
+        pendingVouchers.delete(interaction.user.id);
+      } else {
+        pendingVouchers.delete(interaction.user.id);
+      }
+    }
 
     const order = db.createOrder({
-      userId:     interaction.user.id,
-      username:   interaction.user.tag,
-      gameSlug:   product.categoryId || product.gameSlug || 'store',
-      itemId:     product.id,
-      itemName:   product.name,
-      price:      finalPrice,
-      totalPrice: finalPrice,
+      userId:      interaction.user.id,
+      username:    interaction.user.tag,
+      gameSlug:    product.categoryId || product.gameSlug || 'store',
+      itemId:      product.id,
+      itemName:    product.name,
+      price:       basePrice,
+      totalPrice:  finalPrice,
+      discount,
+      voucherCode: voucherCode || null,
       robuxAmount: product.robuxAmount || null,
       items: [{
         id:       product.id,
@@ -123,12 +145,16 @@ async function handleOrderNow(interaction) {
       ? `©${product.robuxAmount} R$ = ${embeds.rp(finalPrice)}`
       : embeds.rp(finalPrice);
 
+    const voucherLine = usedVoucher
+      ? `\n🎫 Voucher: **${voucherCode}** (hemat ${embeds.rp(discount)})`
+      : '';
+
     await interaction.editReply({
       content:
         `✅ **Order berhasil!**\n` +
         `🧾 Invoice: **${order.invoice}**\n` +
         `🛍️ Item: ${product.emoji} ${product.name}\n` +
-        `💰 Total: ${priceInfo}\n` +
+        `💰 Total: ${priceInfo}${voucherLine}\n` +
         `🎫 Ticket: ${ticketChannel}\n\n` +
         `Cek DM kamu untuk detail order!`,
     });

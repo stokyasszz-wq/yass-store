@@ -45,6 +45,11 @@ const { handleGigManualModal } = require('./handlers/gigManualOrderHandler');
 const { handlePaymentClaim } = require('./handlers/paymentClaimHandler');
 const { showSetMyPaymentModal, handleSetMyPaymentModal } = require('./handlers/setMyPaymentHandler');
 const { handleSetHistoryChannel } = require('./handlers/orderHistoryChannel');
+const {
+  pendingVouchers,
+  handleVoucherList, showVoucherCreateModal, handleVoucherCreateModal,
+  handleVoucherDelete, handleVoucherInfo, handleVoucherToggle, handleApplyVoucher,
+} = require('./handlers/voucherHandler');
 
 ['token', 'guildId', 'staffRoleId'].forEach(key => {
   if (!config[key]) { console.error(`[BOT] Config missing: ${key}`); process.exit(1); }
@@ -219,6 +224,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (commandName === 'setmypayment')      { if (await staffOnly()) return; return showSetMyPaymentModal(interaction); }
       if (commandName === 'sethistorychannel') { if (await staffOnly()) return; return handleSetHistoryChannel(interaction); }
 
+      // ── Voucher ───────────────────────────────────────────────────────────
+      if (commandName === 'applyvoucher') return handleApplyVoucher(interaction, pendingVouchers);
+      if (commandName === 'voucher') {
+        const sub = interaction.options.getSubcommand();
+        if (sub === 'list')   { if (await staffOnly()) return; return handleVoucherList(interaction); }
+        if (sub === 'create') { if (await staffOnly()) return; return showVoucherCreateModal(interaction); }
+        if (sub === 'delete') { if (await staffOnly()) return; return handleVoucherDelete(interaction); }
+        if (sub === 'info')   { if (await staffOnly()) return; return handleVoucherInfo(interaction); }
+        if (sub === 'toggle') { if (await staffOnly()) return; return handleVoucherToggle(interaction); }
+        return;
+      }
+
       // ── Cart ──────────────────────────────────────────────────────────────
       if (commandName === 'cart')     return handleViewCart(interaction);
       if (commandName === 'checkout') return handleCheckoutCommand(interaction);
@@ -258,6 +275,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (id === 'modal_bulk_stock')        return handleBulkStockModal(interaction);
       if (id === 'modal_gig_manual')        return handleGigManualModal(interaction);
       if (id === 'modal_set_my_payment')    return handleSetMyPaymentModal(interaction);
+      if (id === 'modal_voucher_create')    return handleVoucherCreateModal(interaction);
       if (id.startsWith('modal_review_'))   return handleReviewModal(interaction, id.replace('modal_review_', ''));
       if (id === 'modal_inv_search') {
         const { handleInvoiceSearchModal } = require('./handlers/invoicePanel');

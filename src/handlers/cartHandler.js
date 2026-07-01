@@ -11,6 +11,7 @@ const config = require('../config');
 const liveStore = require('../liveStore');
 const stockLock = require('../stockLock');
 const { sendLog } = require('./logManager');
+const { pendingVouchers } = require('./voucherHandler');
 
 const rp = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 const checkoutCooldowns = new Map();
@@ -210,17 +211,39 @@ async function handleCartCheckout(interaction) {
     }
     db.setStock(freshStock);
 
-    const totalPrice = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+    const baseTotal = cart.reduce((s, i) => s + i.price * (i.quantity || 1), 0);
+
+    // Terapkan voucher jika ada
+    const voucherCode = pendingVouchers.get(interaction.user.id) || null;
+    let totalPrice  = baseTotal;
+    let discount    = 0;
+    let usedVoucher = null;
+    if (voucherCode) {
+      const vResult = db.validateVoucher(voucherCode);
+      if (vResult.ok) {
+        const applied = db.applyVoucherDiscount(vResult.voucher, baseTotal);
+        totalPrice  = applied.finalPrice;
+        discount    = applied.discount;
+        usedVoucher = vResult.voucher;
+        db.useVoucher(voucherCode, interaction.user.id);
+        pendingVouchers.delete(interaction.user.id);
+      } else {
+        pendingVouchers.delete(interaction.user.id);
+      }
+    }
+
     const order = db.createOrder({
-      userId:   interaction.user.id,
-      username: interaction.user.tag,
-      gameSlug: 'cart',
-      items:    cart.map(i => ({ id: i.id, name: i.name, emoji: i.emoji, price: i.price, quantity: i.quantity || 1 })),
+      userId:      interaction.user.id,
+      username:    interaction.user.tag,
+      gameSlug:    'cart',
+      items:       cart.map(i => ({ id: i.id, name: i.name, emoji: i.emoji, price: i.price, quantity: i.quantity || 1 })),
       totalPrice,
-      isCart:   true,
-      itemId:   null,
-      itemName: `Cart (${cart.length} item)`,
-      price:    totalPrice,
+      discount,
+      voucherCode: voucherCode || null,
+      isCart:      true,
+      itemId:      null,
+      itemName:    `Cart (${cart.length} item)`,
+      price:       baseTotal,
     });
 
     db.clearCart(interaction.user.id);
@@ -233,11 +256,15 @@ async function handleCartCheckout(interaction) {
     const updatedOrder = db.getOrderByInvoice(order.invoice);
     await sendLog(interaction.guild, updatedOrder, 'ORDER CREATED', `Cart checkout by ${interaction.user.tag}`);
 
+    const voucherLine = usedVoucher
+      ? `\n🎫 Voucher: **${voucherCode}** (hemat ${rp(discount)})`
+      : '';
+
     await interaction.editReply({
       content:
         `✅ **Checkout berhasil!**\n` +
         `🧾 Invoice: **${order.invoice}**\n` +
-        `🛒 ${cart.length} item | Total: **${rp(totalPrice)}**\n` +
+        `🛒 ${cart.length} item | Total: **${rp(totalPrice)}**${voucherLine}\n` +
         `🎫 Ticket: ${ticketChannel}\n\n` +
         `Silakan lanjutkan pembayaran di channel tersebut. Cek DM kamu untuk detail order!`,
       embeds: [], components: [],

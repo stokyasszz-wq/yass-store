@@ -10,6 +10,8 @@ const config = require('../config');
 
 const rp = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
+const pendingVouchers = new Map();
+
 // ── List ─────────────────────────────────────────────────────────────────────
 async function handleVoucherList(interaction) {
   const vouchers = db.getVouchers();
@@ -187,6 +189,7 @@ async function handleApplyVoucher(interaction, pendingVouchers) {
 }
 
 module.exports = {
+  pendingVouchers,
   handleVoucherList,
   showVoucherCreateModal, handleVoucherCreateModal,
   handleVoucherDelete,

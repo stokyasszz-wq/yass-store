@@ -28,5 +28,11 @@
     "name": "Robux Via Login",
     "emoji": "💰",
     "isOpen": false
+  },
+  {
+    "isOpen": false,
+    "id": "grow_a_garden",
+    "name": "Grow A Garden",
+    "emoji": "🌿"
   }
 ]

@@ -759,5 +759,41 @@
     "type": "gig",
     "subCategory": "boost",
     "defaultStock": 99
+  },
+  {
+    "defaultStock": 50,
+    "id": "normal-1m-shackles-84608",
+    "categoryId": "grow_a_garden",
+    "name": "1M Shackles",
+    "price": 500,
+    "emoji": "🛍️",
+    "type": "normal"
+  },
+  {
+    "defaultStock": 55,
+    "id": "normal-5m-shackles-66681",
+    "categoryId": "grow_a_garden",
+    "name": "5M Shackles",
+    "price": 1200,
+    "emoji": "🛍️",
+    "type": "normal"
+  },
+  {
+    "defaultStock": 55,
+    "id": "normal-10m-shackles-23901",
+    "categoryId": "grow_a_garden",
+    "name": "10M Shackles",
+    "price": 1600,
+    "emoji": "🛍️",
+    "type": "normal"
+  },
+  {
+    "defaultStock": 55,
+    "id": "normal-20m-shackles-2671",
+    "categoryId": "grow_a_garden",
+    "name": "20M Shackles",
+    "price": 2100,
+    "emoji": "🛍️",
+    "type": "normal"
   }
 ]
